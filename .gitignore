@@ -1,0 +1,18 @@
+# Node
+node_modules/
+dist/
+.nyc_output/
+coverage/
+.env
+*.log
+package-lock.json
+
+# TypeScript
+*.tsbuildinfo
+
+# Editor/IDE
+.vscode/
+.idea/
+.DS_Store
+html-temp/
+verctl-test-dist/
