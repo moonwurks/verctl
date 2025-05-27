@@ -1,0 +1,8 @@
+# Ignore everything...
+**
+
+# ...except these:
+!src
+!src/**
+!tests
+!tests/**

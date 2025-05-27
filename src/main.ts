@@ -9,14 +9,14 @@ import { extractVersionToStore, restoreVersionFromStore } from './utils/version'
 import { tagVersion } from './utils/git'
 import { showUsage } from './help'
 import { execSync } from 'child_process'
-import { getRootPackage, PackageJson, PackageLockJson } from "./utils/common"
+import { getRootPackage, PackageJson, PackageLockJson } from './utils/common'
 import { injectVersionInAssets } from './utils/injector'
 
 async function main(): Promise<void> {
 	const cli: ParsedArgs = parseCommand(process.argv)
 	if(cli.error) {
 		console.error(cli.error.message)
-		console.error("\nType `verctl help` to show the usage.")
+		console.error('\nType `verctl help` to show the usage.')
 		process.exit(1)
 	}
 

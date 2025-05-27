@@ -1,6 +1,6 @@
-import fs from "fs"
-import { readJSON } from "./writer"
-import { getRootPackage, PackageJson, PackageLockJson } from "./common"
+import fs from 'fs'
+import { readJSON } from './writer'
+import { getRootPackage, PackageJson, PackageLockJson } from './common'
 
 export type VersionParts = [number, number, number]
 
@@ -96,7 +96,7 @@ export function extractVersionToStore(pkgPath: string, dryRun = false): void {
 	const version = pkgJson.version
 	if (dryRun) {
 		console.log(`(dry-run) Would extract version ${version} and write to ${VERSION_STORE_FILE}`)
-		console.log(`(dry-run) Would remove version from package.json`)
+		console.log('(dry-run) Would remove version from package.json')
 	} else {
 		fs.writeFileSync(VERSION_STORE_FILE, JSON.stringify({ version }, null, 2))
 		delete pkgJson.version

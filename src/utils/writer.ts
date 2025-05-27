@@ -1,20 +1,17 @@
 import { parse } from 'editorconfig'
 import fs from 'fs'
 
-export async function writeJSON(filePath: string, data: object, dryRun = false) {
+export async function writeJSON(filePath: string, data: unknown, dryRun = false): Promise<void> {
 	const original = fs.existsSync(filePath)
 		? JSON.parse(fs.readFileSync(filePath, 'utf8'))
 		: {}
 
-	const updated = { ...original, ...data }
+	const updated = { ...original, ...data as Record<string, unknown> }
 
 	let indent = '  ' // default 2 spaces
 	try {
 		const ec = await parse(filePath)
-		indent =
-			ec.indent_style === 'tab'
-				? '\t'
-				: ' '.repeat(Number(ec.indent_size || 2))
+		indent = ec.indent_style === 'tab' ? '\t' : ' '.repeat(Number(ec.indent_size || 2))
 	} catch {
 		// fallback to default
 	}

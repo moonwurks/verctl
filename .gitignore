@@ -1,11 +1,12 @@
 # Node
 node_modules/
-dist/
+dist
 .nyc_output/
 coverage/
 .env
 *.log
 package-lock.json
+.yarn/releases/
 
 # TypeScript
 *.tsbuildinfo
@@ -14,5 +15,5 @@ package-lock.json
 .vscode/
 .idea/
 .DS_Store
-html-temp/
-verctl-test-dist/
+custom-dist/
+.verctl-version.json

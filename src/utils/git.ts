@@ -46,7 +46,7 @@ export function tagVersion(version: string, lockPath?: string, dryRun = false, u
 			return true
 		}
 	} catch(e) {
-		console.error(`✖ Failed to create Git commit or tag.`)
+		console.error('✖ Failed to create Git commit or tag.')
 		console.error(e)
 		return false
 	}

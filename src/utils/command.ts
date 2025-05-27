@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import { isValidSemver } from "./version"
+import { isValidSemver } from './version'
 
 export const flagAliases: Record<string, string> = {
 	'-d': '--dry',
@@ -33,27 +33,25 @@ export const flagAliases: Record<string, string> = {
 }
 
 export class ParsedArgs {
-	public cmd: string = ''
-	public dryRun: boolean = false
-	public showHelp: boolean = false
-	public showAppVersion: boolean = false
-	public readCurrentVersion: boolean = false
-	public shouldTag: boolean = false
+	public cmd = ''
+	public dryRun = false
+	public showHelp = false
+	public showAppVersion = false
+	public readCurrentVersion = false
+	public shouldTag = false
 	public prereleaseValue: string | null = null
-	public all: boolean = false
-	public gitless: boolean = false
+	public all = false
+	public gitless = false
 	public base: string | null = null
 	public command: string | null = null
 	public message: string | null = null
-	public source: string = ''
-	public injectExt: string = 'html'
-	public pgkPathFile: string = 'package.json'
+	public source = ''
+	public injectExt = 'html'
+	public pgkPathFile = 'package.json'
 	public replacePattern: string | null = null
 	public error?: { message: string }
-	public restoreVersion: boolean = false
-	public removeAndStore: boolean = false
-
-	constructor() {}
+	public restoreVersion = false
+	public removeAndStore = false
 }
 
 export function validateFlags(args: string[]): boolean {
@@ -96,7 +94,7 @@ export function parseCommand(argv: string[]): ParsedArgs {
 	if (!isKnownCommand) {
 		if (isEmptyOrFlag) {
 			parsedArgs.error = {
-				message: `Missing or malformed command.`
+				message: 'Missing or malformed command.'
 			}
 			return parsedArgs
 		}
