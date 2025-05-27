@@ -58,12 +58,12 @@ async function main(): Promise<void> {
 	}
 
 	if (cli.cmd === 'extract') {
-		extractVersionToStore(pkgPath)
+		extractVersionToStore(pkgPath, cli.dryRun)
 		process.exit(0)
 	}
 
 	if (cli.cmd === 'restore') {
-		restoreVersionFromStore(pkgPath)
+		restoreVersionFromStore(pkgPath, cli.dryRun)
 		process.exit(0)
 	}
 

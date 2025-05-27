@@ -79,7 +79,7 @@ export async function removeVersion(
 
 const VERSION_STORE_FILE = '.verctl-version.json'
 
-export function extractVersionToStore(pkgPath: string): void {
+export function extractVersionToStore(pkgPath: string, dryRun = false): void {
 	if (!fs.existsSync(pkgPath)) {
 		console.error(`✖ package.json not found at: ${pkgPath}`)
 		process.exit(1)
@@ -94,14 +94,18 @@ export function extractVersionToStore(pkgPath: string): void {
 	}
 
 	const version = pkgJson.version
-	fs.writeFileSync(VERSION_STORE_FILE, JSON.stringify({ version }, null, 2))
-	delete pkgJson.version
-	fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2))
-
-	console.log(`✔ Version ${version} extracted and stored in ${VERSION_STORE_FILE}`)
+	if (dryRun) {
+		console.log(`(dry-run) Would extract version ${version} and write to ${VERSION_STORE_FILE}`)
+		console.log(`(dry-run) Would remove version from package.json`)
+	} else {
+		fs.writeFileSync(VERSION_STORE_FILE, JSON.stringify({ version }, null, 2))
+		delete pkgJson.version
+		fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2))
+		console.log(`✔ Version ${version} extracted and stored in ${VERSION_STORE_FILE}`)
+	}
 }
 
-export function restoreVersionFromStore(pkgPath: string): void {
+export function restoreVersionFromStore(pkgPath: string, dryRun = false): void {
 	if (!fs.existsSync(VERSION_STORE_FILE)) {
 		console.error(`✖ ${VERSION_STORE_FILE} not found.`)
 		process.exit(1)
@@ -119,8 +123,11 @@ export function restoreVersionFromStore(pkgPath: string): void {
 
 	const pkgRaw = fs.readFileSync(pkgPath, 'utf-8')
 	const pkgJson = JSON.parse(pkgRaw)
-	pkgJson.version = version
-
-	fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2))
-	console.log(`✔ Version ${version} restored to package.json`)
+	if (dryRun) {
+		console.log(`(dry-run) Would restore version ${version} into package.json`)
+	} else {
+		pkgJson.version = version
+		fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2))
+		console.log(`✔ Version ${version} restored to package.json`)
+	}
 }

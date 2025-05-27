@@ -216,6 +216,21 @@ describe('common functions', () => {
 		expect(stdout).toContain('Commands:')
 	})
 
+	it('dry-run: extract should not change package.json or create version file', async () => {
+		const versionStore = path.resolve(customDist, '.verctl-version.json')
+		const pkgPath = path.resolve(customDist, 'package.json')
+
+		const originalPkg = await fsp.readFile(pkgPath, 'utf8')
+
+		const { stdout } = await execa('node', [cli, 'extract', '--dry'])
+		expect(stdout).toContain('(dry-run) Would extract version')
+		expect(stdout).toContain('(dry-run) Would remove version')
+
+		const currentPkg = await fsp.readFile(pkgPath, 'utf8')
+		expect(currentPkg).toBe(originalPkg)
+		expect(fs.existsSync(versionStore)).toBe(false)
+	})
+
 	it('extracts version to .verctl-version.json and removes from package.json', async () => {
 		const versionStore = path.resolve(customDist, '.verctl-version.json')
 		const pkgPath = path.resolve(customDist, 'package.json')
@@ -241,6 +256,20 @@ describe('common functions', () => {
 
 		const pkgJson = JSON.parse(await fsp.readFile(pkgPath, 'utf8'))
 		expect(pkgJson.version).toBe(stored.version)
+	})
+
+	it('dry-run: restore should not change package.json', async () => {
+		const versionStore = path.resolve(customDist, '.verctl-version.json')
+		const pkgPath = path.resolve(customDist, 'package.json')
+
+		const stored = JSON.parse(await fsp.readFile(versionStore, 'utf8'))
+		const originalPkg = await fsp.readFile(pkgPath, 'utf8')
+
+		const { stdout } = await execa('node', [cli, 'restore', '--dry'])
+		expect(stdout).toContain(`(dry-run) Would restore version ${stored.version}`)
+
+		const currentPkg = await fsp.readFile(pkgPath, 'utf8')
+		expect(currentPkg).toBe(originalPkg)
 	})
 })
 
