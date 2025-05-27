@@ -76,3 +76,51 @@ export async function removeVersion(
 		updatedLock
 	}
 }
+
+const VERSION_STORE_FILE = '.verctl-version.json'
+
+export function extractVersionToStore(pkgPath: string): void {
+	if (!fs.existsSync(pkgPath)) {
+		console.error(`✖ package.json not found at: ${pkgPath}`)
+		process.exit(1)
+	}
+
+	const pkgRaw = fs.readFileSync(pkgPath, 'utf-8')
+	const pkgJson = JSON.parse(pkgRaw)
+
+	if (!pkgJson.version) {
+		console.error('✖ No version found in package.json to extract.')
+		process.exit(1)
+	}
+
+	const version = pkgJson.version
+	fs.writeFileSync(VERSION_STORE_FILE, JSON.stringify({ version }, null, 2))
+	delete pkgJson.version
+	fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2))
+
+	console.log(`✔ Version ${version} extracted and stored in ${VERSION_STORE_FILE}`)
+}
+
+export function restoreVersionFromStore(pkgPath: string): void {
+	if (!fs.existsSync(VERSION_STORE_FILE)) {
+		console.error(`✖ ${VERSION_STORE_FILE} not found.`)
+		process.exit(1)
+	}
+
+	const storeRaw = fs.readFileSync(VERSION_STORE_FILE, 'utf-8')
+	const storeJson = JSON.parse(storeRaw)
+
+	if (!storeJson.version) {
+		console.error(`✖ No version found in ${VERSION_STORE_FILE}.`)
+		process.exit(1)
+	}
+
+	const version = storeJson.version
+
+	const pkgRaw = fs.readFileSync(pkgPath, 'utf-8')
+	const pkgJson = JSON.parse(pkgRaw)
+	pkgJson.version = version
+
+	fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2))
+	console.log(`✔ Version ${version} restored to package.json`)
+}

@@ -50,6 +50,8 @@ export class ParsedArgs {
 	public pgkPathFile: string = 'package.json'
 	public replacePattern: string | null = null
 	public error?: { message: string }
+	public restoreVersion: boolean = false
+	public removeAndStore: boolean = false
 
 	constructor() {}
 }
@@ -86,7 +88,7 @@ export function parseCommand(argv: string[]): ParsedArgs {
 
 	const cmd: string = args[0]
 	const helpCommands = ['help', '--help', '-h', 'version', '--version', '-v']
-	const knownCommands = ['major', 'minor', 'patch', 'remove', 'html', 'current']
+	const knownCommands = ['major', 'minor', 'patch', 'remove', 'html', 'current', 'extract', 'restore']
 	const isKnownCommand = knownCommands.concat(helpCommands).includes(cmd)
 	const isEmptyOrFlag = !cmd || cmd.startsWith('-')
 	const isSemver = isValidSemver(cmd)
@@ -147,6 +149,8 @@ export function parseCommand(argv: string[]): ParsedArgs {
 		}
 
 		parsedArgs.readCurrentVersion = cmd === 'current'
+		parsedArgs.removeAndStore = cmd === 'extract'
+		parsedArgs.restoreVersion = cmd === 'restore'
 
 		const sourceIndex = args.findIndex(arg => arg === '--source' || arg === '-s')
 		parsedArgs.source = sourceIndex !== -1 ? args[sourceIndex + 1] ?? '' : ''

@@ -11,6 +11,8 @@ Commands:
   remove       Completely delete version field from package.json (and lockfile)
   current      Show version from package.json
   html         Append ?v=VERSION to src/href in <script> and <link> tags within files in a target
+  extract      Move version from package.json to a hidden .verctl-version.json
+  restore      Restore version from .verctl-version.json back to package.json
   help         Show this help message
   version      Show verctl version
 

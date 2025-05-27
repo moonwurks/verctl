@@ -5,6 +5,7 @@ import fs from 'fs'
 import { parseCommand, ParsedArgs } from './utils/command'
 import { readJSON, writeJSON } from './utils/writer'
 import { bumpVersion, applyPrerelease, isValidSemver, removeVersion } from './utils/version'
+import { extractVersionToStore, restoreVersionFromStore } from './utils/version'
 import { tagVersion } from './utils/git'
 import { showUsage } from './help'
 import { execSync } from 'child_process'
@@ -53,6 +54,16 @@ async function main(): Promise<void> {
 
 	if (cli.readCurrentVersion) {
 		console.log(pkg.version || 'No version field found in package.json')
+		process.exit(0)
+	}
+
+	if (cli.cmd === 'extract') {
+		extractVersionToStore(pkgPath)
+		process.exit(0)
+	}
+
+	if (cli.cmd === 'restore') {
+		restoreVersionFromStore(pkgPath)
 		process.exit(0)
 	}
 
