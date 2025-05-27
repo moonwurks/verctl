@@ -7,7 +7,7 @@
 	},
 	"scripts": {
 		"start": "ts-node src/main.ts --invalid",
-		"test": "vitest run",
+		"test": "yarn build && vitest run",
 		"build": "tsc",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix"
