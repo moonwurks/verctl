@@ -215,6 +215,33 @@ describe('common functions', () => {
 		expect(stdout).toContain('Usage:')
 		expect(stdout).toContain('Commands:')
 	})
+
+	it('extracts version to .verctl-version.json and removes from package.json', async () => {
+		const versionStore = path.resolve(customDist, '.verctl-version.json')
+		const pkgPath = path.resolve(customDist, 'package.json')
+
+		const { stdout } = await execa('node', [cli, 'extract'])
+		expect(stdout).toContain('✔ Version')
+
+		const stored = JSON.parse(await fsp.readFile(versionStore, 'utf8'))
+		expect(stored.version).toMatch(/^\d+\.\d+\.\d+(-.+)?$/)
+
+		const pkgJson = JSON.parse(await fsp.readFile(pkgPath, 'utf8'))
+		expect(pkgJson.version).toBeUndefined()
+	})
+
+	it('restores version from .verctl-version.json to package.json', async () => {
+		const versionStore = path.resolve(customDist, '.verctl-version.json')
+		const pkgPath = path.resolve(customDist, 'package.json')
+
+		const stored = JSON.parse(await fsp.readFile(versionStore, 'utf8'))
+
+		const { stdout } = await execa('node', [cli, 'restore'])
+		expect(stdout).toContain(`✔ Version ${stored.version} restored to package.json`)
+
+		const pkgJson = JSON.parse(await fsp.readFile(pkgPath, 'utf8'))
+		expect(pkgJson.version).toBe(stored.version)
+	})
 })
 
 describe('verctl CLI inject', () => {
