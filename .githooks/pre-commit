@@ -3,5 +3,5 @@ set -e
 
 yarn lint:fix
 yarn lint
-yarn build
+yarn prepare
 yarn test
