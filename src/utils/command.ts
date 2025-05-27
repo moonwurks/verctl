@@ -74,20 +74,19 @@ export function validateFlags(args: string[]): boolean {
 }
 
 export function parseCommand(argv: string[]): ParsedArgs {
+	const parsedArgs = new ParsedArgs()
 	const args: string[] = argv.slice(2)
-	for (const arg of args) {
-		if (arg.startsWith('-') && !flagAliases[arg]) {
-			const parsedArgs = new ParsedArgs()
-			parsedArgs.error = { message: `Unknown argument: ${arg}` }
-			return parsedArgs
-		}
+
+	try {
+		validateFlags(args)
+	} catch (e) {
+		parsedArgs.error = { message: String(e) }
+		return parsedArgs
 	}
 
 	const cmd: string = args[0]
-	const parsedArgs = new ParsedArgs()
-
-	const helpCommands = ['help', '--help', '-h', 'version', '--version', '-v', 'current']
-	const knownCommands = ['major', 'minor', 'patch', 'remove', 'html']
+	const helpCommands = ['help', '--help', '-h', 'version', '--version', '-v']
+	const knownCommands = ['major', 'minor', 'patch', 'remove', 'html', 'current']
 	const isKnownCommand = knownCommands.concat(helpCommands).includes(cmd)
 	const isEmptyOrFlag = !cmd || cmd.startsWith('-')
 	const isSemver = isValidSemver(cmd)
@@ -109,7 +108,6 @@ export function parseCommand(argv: string[]): ParsedArgs {
 	}
 
 	try {
-		validateFlags(args)
 		parsedArgs.cmd = cmd
 		parsedArgs.dryRun = args.includes('--dry') || args.includes('-d')
 		parsedArgs.showHelp = args.includes('--help') || args.includes('-h') || cmd === 'help'
