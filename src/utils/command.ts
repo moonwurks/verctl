@@ -34,24 +34,24 @@ export const flagAliases: Record<string, string> = {
 
 export class ParsedArgs {
 	public cmd = ''
+	public source = ''
+	public injectExt = 'html'
+	public pgkPathFile = 'package.json'
 	public dryRun = false
 	public showHelp = false
 	public showAppVersion = false
 	public readCurrentVersion = false
 	public shouldTag = false
-	public prereleaseValue: string | null = null
 	public all = false
 	public gitless = false
-	public base: string | null = null
-	public command: string | null = null
-	public message: string | null = null
-	public source = ''
-	public injectExt = 'html'
-	public pgkPathFile = 'package.json'
-	public replacePattern: string | null = null
-	public error?: { message: string }
 	public restoreVersion = false
 	public removeAndStore = false
+	public prereleaseValue?: string
+	public replacePattern?: string
+	public base?: string
+	public command?: string
+	public message?: string
+	public error?: { message: string }
 }
 
 export function validateFlags(args: string[]): boolean {
@@ -133,13 +133,13 @@ export function parseCommand(argv: string[]): ParsedArgs {
 		}
 
 		const commandIndex = args.findIndex(arg => arg === '--command' || arg === '-c')
-		parsedArgs.command = commandIndex !== -1 ? args[commandIndex + 1] ?? null : null
+		parsedArgs.command = commandIndex !== -1 ? args[commandIndex + 1] ?? undefined : undefined
 
 		const messageIndex = args.findIndex(arg => arg === '--message' || arg === '-m')
-		parsedArgs.message = messageIndex !== -1 ? args[messageIndex + 1] ?? null : null
+		parsedArgs.message = messageIndex !== -1 ? args[messageIndex + 1] ?? undefined : undefined
 
 		const replaceIndex = args.findIndex(arg => arg === '--replace' || arg === '-r')
-		parsedArgs.replacePattern = replaceIndex !== -1 ? args[replaceIndex + 1] ?? null : null
+		parsedArgs.replacePattern = replaceIndex !== -1 ? args[replaceIndex + 1] ?? undefined : undefined
 
 		if (parsedArgs.replacePattern) {
 			parsedArgs.error = { message: '--replace is not supported yet.' }
