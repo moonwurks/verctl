@@ -52,7 +52,6 @@ describe('common functions', () => {
 	it('handles --message with %v placeholder for custom commit', async () => {
 		const version = '7.7.7'
 		const { stdout, stderr } = await execa('node', [cli, version, '--tag', '--message', 'Release %v'], { cwd: customDist, reject: false })
-		console.log(stderr)
 		expect(stdout).toContain('✔ Git commit and tag created: v7.7.7')
 		expect(stdout).toContain('✔ Commit message: Release 7.7.7')
 	})
@@ -156,11 +155,6 @@ describe('common functions', () => {
 		expect(exitCode).not.toBe(0)
 	})
 
-	it('handles --tag (creates git tag)', async () => {
-		const { stdout } = await execa('node', [cli, 'patch', '--tag'], { cwd: customDist, reject: false })
-		expect(stdout).toContain('version updated:')
-	})
-
 	it('handles --prerelease with value', async () => {
 		const { stdout } = await execa('node', [cli, 'minor', '--prerelease', 'beta.1'], { cwd: customDist, reject: false })
 		expect(stdout).toMatch(/→ \d+\.\d+\.0-beta\.1/)
@@ -172,10 +166,59 @@ describe('common functions', () => {
 		expect(exitCode).not.toBe(0)
 	})
 
+	it('handles --tag (creates git tag)', async () => {
+		const { stdout } = await execa('node', [cli, 'patch', '--tag'], { cwd: customDist, reject: false })
+		expect(stdout).toContain('version updated:')
+	})
+
 	it('handles --all with --tag (adds all files)', async () => {
 		const { stdout } = await execa('node', [cli, 'patch', '--tag', '--all'], { cwd: customDist, reject: false })
 		expect(stdout).toContain('version updated:')
 	})
+
+	it('handles --commit (creates git commit without tag)', async () => {
+		const { stdout } = await execa('node', [cli, 'patch', '--commit'], {
+			cwd: customDist,
+			reject: false
+		})
+		expect(stdout).toContain('Git commit created for version')
+		expect(stdout).not.toContain('tag created')
+	})
+
+	it('handles --commit with --tag (commit + tag)', async () => {
+		const { stdout } = await execa('node', [cli, 'patch', '--commit', '--tag'], {
+			cwd: customDist,
+			reject: false
+		})
+		expect(stdout).toContain('Git commit and tag created')
+		expect(stdout).not.toContain('✖') // should succeed
+	})
+
+	it('handles --execute before commit', async () => {
+		const { stdout } = await execa('node', [cli, 'patch', '-x', 'echo OK', '-c'], { cwd: customDist, reject: false })
+		expect(stdout).toContain('✔ Running pre-tag command: echo OK')
+	})
+
+	it('handles --commit with --dry (dry-run only)', async () => {
+		const { stdout } = await execa('node', [cli, 'patch', '--commit', '--dry'], {
+			cwd: customDist,
+			reject: false
+		})
+		expect(stdout).toContain('(dry-run) Would run: git add')
+		expect(stdout).toContain('(dry-run) Would run: git commit')
+		expect(stdout).not.toContain('tag created')
+	})
+
+	it('handles --commit with --all (adds all files)', async () => {
+		const { stdout } = await execa('node', [cli, 'patch', '--commit', '--all'], {
+			cwd: customDist,
+			reject: false
+		})
+		expect(stdout).toContain('Git commit created for version')
+		expect(stdout).not.toContain('tag created')
+		expect(stdout).not.toContain('✖') // should not error
+	})
+
 
 	it('handles --gitless (skips tag output)', async () => {
 		const { stdout } = await execa('node', [cli, 'patch', '--gitless', '--tag'], { cwd: customDist, reject: false })
@@ -187,8 +230,8 @@ describe('common functions', () => {
 		expect(stdout).toContain('✔ Base version overridden: 1.0.0')
 	})
 
-	it('handles --command execution before tag', async () => {
-		const { stdout } = await execa('node', [cli, 'patch', '--command', 'echo OK', '--tag'], { cwd: customDist, reject: false })
+	it('handles --execute before tag', async () => {
+		const { stdout } = await execa('node', [cli, 'patch', '--execute', 'echo OK', '--tag'], { cwd: customDist, reject: false })
 		expect(stdout).toContain('✔ Running pre-tag command: echo OK')
 	})
 
@@ -293,8 +336,7 @@ describe('common functions', () => {
 
 		const stored = JSON.parse(await fsp.readFile(versionStore, 'utf8'))
 
-		const { stdout, stderr } = await execa('node', [cli, 'restore', '-f', pkgPath], { cwd: customDist, reject: false })
-		console.log(stdout, stderr)
+		const { stdout } = await execa('node', [cli, 'restore', '-f', pkgPath], { cwd: customDist, reject: false })
 		expect(stdout).toContain(`✔ Version ${stored.version} restored to package.json`)
 
 		const pkgJson = JSON.parse(await fsp.readFile(pkgPath, 'utf8'))

@@ -8,11 +8,11 @@
 	"scripts": {
 		"start": "ts-node src/main.ts",
 		"test": "vitest run",
+		"test:build": "yarn prepare && vitest run",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"git:hooks": "chmod +x .githooks/* && git config core.hooksPath .githooks",
-		"prepare": "tsc",
-		"build-test": "yarn prepare && vitest run"
+		"prepare": "tsc"
 	},
 	"dependencies": {
 		"@types/node": "14",

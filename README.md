@@ -44,7 +44,7 @@ verctl <command|x.y.z> [options]
 - `x.y.z`    – Set version explicitly
 - `remove`   – Remove the `version` field from `package.json`
 - `extract`  – Extract version of `package.json` into a file (`.verctl-version.json`)
-- `restore`  – Restore version from the hidden file back to `package.json`
+- `restore`  – Restore version from `.verctl-version.json` file back to `package.json`
 - `html`     – Inject version string into HTML assets
 - `help`     – Show help
 - `version`  – Show verctl version
@@ -53,11 +53,12 @@ verctl <command|x.y.z> [options]
 
 - `-h`, `--help` – Display this help message
 - `-d`, `--dry` – Show what would change without writing to disk
+- `-c`, `--commit` – Git: Execute a command before commit/tag
 - `-t`, `--tag` – Git: Create a git commit and tag
 - `-a`, `--all` – Git: Add all files when tagging
-- `-c`, `--command` – Git: Run a command before commit/tag
+- `-x`, `--execute` – Git: Execute a command before commit/tag
 - `-m`, `--message` – Git: Custom tag and commit message (`%v` to print version)
-- `-g`, `--gitless` – Git: skip git tagging
+- `-g`, `--gitless` – Git: ignore all git arguments
 - `-b`, `--base` – Base version override (default: `0.0.0` if not set)
 - `-p`, `--prerelease` – Append a pre-release suffix (e.g. `beta.1`)
 - `-f`, `--file <path>` – Custom location / name of `package.json`
@@ -143,8 +144,14 @@ Use the --dry option to simulate what would happen without modifying any files o
 $ verctl patch --dry
 ```
 
+### `ARG --commit` – create git commit
+Use the --commit or -c option to create a Git commit without creating a tag. This is useful when you want version tracking in Git but don’t need a version tag. Can be combined with major, minor, patch, or an explicit version (e.g. `2.5.7`).
+```bash
+$ verctl major -t
+```
+
 ### `ARG --tag` – create git tag
-Use the `--tag` or `-t` option to automatically create a git commit and tag. This can be combined with `major`, `minor`, `patch`, or an explicit version (e.g. `2.5.7`).
+Use the `--tag` or `-t` option to automatically create a git commit and tag. This can be combined with `major`, `minor`, `patch`, or an explicit version.
 ```bash
 $ verctl major -t
 ```

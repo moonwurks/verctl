@@ -19,10 +19,12 @@ Commands:
 Options:
   -h, --help          Display this help message
   -d, --dry           Show what would change without writing to disk
+  -c, --commit        Git: Commit the new version
   -t, --tag           Git: Create a Git commit and tag
   -a, --all           Git: Add all files when tagging
-  -c, --command       Git: Run a command before commit/tag
-  -m, --message       Git: Custom tag and commit message (%v to print version)
+  -x, --execute       Git: Execute a command before commit/tag
+  -m, --message       Git: Custom commit message (%v to print version)
+  -g, --gitless       Git: ignore all git arguments
   -b, --base          Base version override (default: 0.0.0 if not set)
   -f, --file <path>   Custom location / name of package.json
   -s, --source <path> Source directory or file path for version injection

@@ -18,8 +18,8 @@ export const flagAliases: Record<string, string> = {
 	'--gitless': '--gitless',
 	'-b': '--base',
 	'--base': '--base',
-	'-c': '--command',
-	'--command': '--command',
+	'-x': '--execute',
+	'--execute': '--execute',
 	'-m': '--message',
 	'--message': '--message',
 	'-e': '--ext',
@@ -30,6 +30,8 @@ export const flagAliases: Record<string, string> = {
 	'--file': '--file',
 	'-r': '--replace',
 	'--replace': '--replace',
+	'-c': '--commit',
+	'--commit': '--commit',
 }
 
 export class ParsedArgs {
@@ -42,6 +44,7 @@ export class ParsedArgs {
 	public showAppVersion = false
 	public readCurrentVersion = false
 	public shouldTag = false
+	public shouldCommit = false
 	public all = false
 	public gitless = false
 	public restoreVersion = false
@@ -49,7 +52,7 @@ export class ParsedArgs {
 	public prereleaseValue?: string
 	public replacePattern?: string
 	public base?: string
-	public command?: string
+	public execute?: string
 	public message?: string
 	public error?: { message: string }
 }
@@ -113,6 +116,7 @@ export function parseCommand(argv: string[]): ParsedArgs {
 		parsedArgs.showHelp = args.includes('--help') || args.includes('-h') || cmd === 'help'
 		parsedArgs.showAppVersion = args.includes('--version') || args.includes('-v') || cmd === 'version'
 		parsedArgs.shouldTag = args.includes('--tag') || args.includes('-t')
+		parsedArgs.shouldCommit = args.includes('--commit') || args.includes('-c')
 		const prereleaseIndex = args.findIndex(arg => arg === '--prerelease' || arg === '-p')
 		if (prereleaseIndex !== -1) {
 			const value = args[prereleaseIndex + 1]
@@ -132,8 +136,8 @@ export function parseCommand(argv: string[]): ParsedArgs {
 			parsedArgs.base = baseValue && !baseValue.startsWith('-') ? baseValue : '0.0.0'
 		}
 
-		const commandIndex = args.findIndex(arg => arg === '--command' || arg === '-c')
-		parsedArgs.command = commandIndex !== -1 ? args[commandIndex + 1] ?? undefined : undefined
+		const executeIndex = args.findIndex(arg => arg === '--execute' || arg === '-x')
+		parsedArgs.execute = executeIndex !== -1 ? args[executeIndex + 1] ?? undefined : undefined
 
 		const messageIndex = args.findIndex(arg => arg === '--message' || arg === '-m')
 		parsedArgs.message = messageIndex !== -1 ? args[messageIndex + 1] ?? undefined : undefined

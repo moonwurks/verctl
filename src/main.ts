@@ -2,19 +2,19 @@
 
 import path from 'path'
 import fs from 'fs'
-import { parseCommand, ParsedArgs } from './utils/command'
-import { readJSON, writeJSON } from './utils/writer'
-import { bumpVersion, applyPrerelease, isValidSemver, removeVersion } from './utils/version'
-import { extractVersionToStore, restoreVersionFromStore } from './utils/version'
-import { tagVersion } from './utils/git'
-import { showUsage } from './help'
-import { execSync } from 'child_process'
-import { getRootPackage, PackageJson, PackageLockJson } from './utils/common'
-import { injectVersionInAssets } from './utils/injector'
+import {parseCommand, ParsedArgs} from './utils/command'
+import {readJSON, writeJSON} from './utils/writer'
+import {bumpVersion, applyPrerelease, isValidSemver, removeVersion} from './utils/version'
+import {extractVersionToStore, restoreVersionFromStore} from './utils/version'
+import {commitVersion, tagVersion} from './utils/git'
+import {showUsage} from './help'
+import {execSync} from 'child_process'
+import {getRootPackage, PackageJson, PackageLockJson} from './utils/common'
+import {injectVersionInAssets} from './utils/injector'
 
 async function main(): Promise<void> {
 	const cli: ParsedArgs = parseCommand(process.argv)
-	if(cli.error) {
+	if (cli.error) {
 		console.error(cli.error.message)
 		console.error('\nType `verctl help` to show the usage.')
 		process.exit(1)
@@ -42,7 +42,7 @@ async function main(): Promise<void> {
 		process.exit(1)
 	}
 	try {
-		const fileContent = fs.readFileSync(pkgPath, { encoding: 'utf-8' })
+		const fileContent = fs.readFileSync(pkgPath, {encoding: 'utf-8'})
 		JSON.parse(fileContent)
 	} catch {
 		console.error(`✖ Target file is not a valid UTF-8 encoded JSON file: ${pkgPath}`)
@@ -91,7 +91,7 @@ async function main(): Promise<void> {
 	}
 
 	if (cli.cmd === 'remove') {
-		const { updatedPkg, updatedLock } = await removeVersion(pkg, lockPath, cli.dryRun)
+		const {updatedPkg, updatedLock} = await removeVersion(pkg, lockPath, cli.dryRun)
 		await writeJSON(pkgPath, updatedPkg, cli.dryRun)
 		if (updatedLock) {
 			await writeJSON(lockPath, updatedLock, cli.dryRun)
@@ -106,7 +106,7 @@ async function main(): Promise<void> {
 			process.exit(1)
 		}
 		try {
-			const param = { target: cli.source, version: pkg.version || '0.0.0', ext: cli.injectExt, dryRun:cli.dryRun }
+			const param = {target: cli.source, version: pkg.version || '0.0.0', ext: cli.injectExt, dryRun: cli.dryRun}
 			await injectVersionInAssets(param)
 		} catch (err: unknown) {
 			console.error(`✖ Failed to inject version into assets: ${(err as Error).message}`)
@@ -117,7 +117,7 @@ async function main(): Promise<void> {
 
 	const oldVersion = pkg.version
 	if (!isValidSemver(oldVersion)) {
-		if(!pkg.version) {
+		if (!pkg.version) {
 			pkg.version = '0.0.0'
 		} else {
 			console.error(`✖ Invalid version in package.json: ${oldVersion}`)
@@ -129,7 +129,7 @@ async function main(): Promise<void> {
 	if (cli.cmd === 'major' || cli.cmd === 'minor' || cli.cmd === 'patch') {
 		newVersion = bumpVersion(pkg.version || '0.0.0', cli.cmd)
 	} else {
-		if(!isValidSemver(cli.cmd)) {
+		if (!isValidSemver(cli.cmd)) {
 			console.error(`✖ Invalid version input: ${cli.cmd}`)
 			process.exit(1)
 		}
@@ -156,26 +156,27 @@ async function main(): Promise<void> {
 		console.log(`✔ package.json version updated: ${oldVersion || 'N/A'} → ${newVersion}`)
 	}
 
-	if (cli.command) {
+	if (cli.execute) {
 		if (cli.dryRun) {
-			console.log(`(dry-run) Would run pre-tag command: ${cli.command}`)
+			console.log(`(dry-run) Would run pre-tag command: ${cli.execute}`)
 		} else {
 			try {
-				console.log(`✔ Running pre-tag command: ${cli.command}`)
-				execSync(cli.command, { stdio: 'inherit' })
+				console.log(`✔ Running pre-tag command: ${cli.execute}`)
+				execSync(cli.execute, {stdio: 'inherit'})
 			} catch {
-				console.error(`✖ Command failed: ${cli.command}`)
+				console.error(`✖ Command failed: ${cli.execute}`)
 				process.exit(1)
 			}
 		}
 	}
 
-	if (!cli.gitless && cli.shouldTag) {
-		if (cli.dryRun) {
-			console.log(`(dry-run) Would create Git commit and tag for version: ${newVersion}`)
-		} else {
-			tagVersion(newVersion, lockPath, cli.dryRun, cli.all, cli.message ?? undefined)
-			process.exit(1)
+	if (!cli.gitless) {
+		if (cli.shouldTag) {
+			const success = tagVersion(newVersion, lockPath, cli.dryRun, cli.all, cli.message ?? undefined)
+			process.exit(success ? 0 : 1)
+		} else if (cli.shouldCommit) {
+			const success = commitVersion(newVersion, lockPath, cli.dryRun, cli.all, cli.message ?? undefined)
+			process.exit(success ? 0 : 1)
 		}
 	}
 
