@@ -80,18 +80,19 @@ export async function removeVersion(
 
 const VERSION_STORE_FILE = '.verctl-version.json'
 
-export function extractVersionToStore(pkgPath: string, dryRun = false): void {
+export function extractVersionToStore(
+	pkgPath: string,
+	dryRun = false
+): { extracted?: string; updatedPkg?: PackageJson; storePath: string; error?: string } {
 	if (!fs.existsSync(pkgPath)) {
-		console.error(`✖ package.json not found at: ${pkgPath}`)
-		process.exit(1)
+		return { error: `package.json not found at: ${pkgPath}`, storePath: '' }
 	}
 
 	const pkgRaw = fs.readFileSync(pkgPath, 'utf-8')
-	const pkgJson = JSON.parse(pkgRaw)
+	const pkgJson: PackageJson = JSON.parse(pkgRaw)
 
 	if (!pkgJson.version) {
-		console.error('✖ No version found in package.json to extract.')
-		process.exit(1)
+		return { error: 'No version found in package.json to extract.', storePath: '' }
 	}
 
 	const version = pkgJson.version
@@ -100,40 +101,69 @@ export function extractVersionToStore(pkgPath: string, dryRun = false): void {
 	if (dryRun) {
 		console.log(`(dry-run) Would extract version ${version} and write to ${versionFilePath}`)
 		console.log('(dry-run) Would remove version from package.json')
-	} else {
-		fs.writeFileSync(versionFilePath, JSON.stringify({ version }, null, 2))
-		delete pkgJson.version
-		fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2))
-		console.log(`✔ Version ${version} extracted and stored in ${versionFilePath}`)
+		return { extracted: version, updatedPkg: pkgJson, storePath: versionFilePath }
 	}
+
+	fs.writeFileSync(versionFilePath, JSON.stringify({ version }, null, 2))
+	delete pkgJson.version
+	fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2))
+	console.log(`✔ Version ${version} extracted and stored in ${versionFilePath}`)
+
+	return { extracted: version, updatedPkg: pkgJson, storePath: versionFilePath }
 }
 
-export function restoreVersionFromStore(pkgPath: string, dryRun = false): void {
+export function restoreVersionFromStore(
+	pkgPath: string,
+	dryRun = false
+): { restored?: string; updatedPkg?: PackageJson; storePath: string; error?: string } {
 	const versionFilePath = path.join(path.dirname(pkgPath), VERSION_STORE_FILE)
 
 	if (!fs.existsSync(versionFilePath)) {
-		console.error(`✖ ${VERSION_STORE_FILE} not found at: ${versionFilePath}`)
-		process.exit(1)
+		return { error: `${VERSION_STORE_FILE} not found at: ${versionFilePath}`, storePath: versionFilePath }
 	}
 
 	const storeRaw = fs.readFileSync(versionFilePath, 'utf-8')
 	const storeJson = JSON.parse(storeRaw)
 
 	if (!storeJson.version) {
-		console.error(`✖ No version found in ${VERSION_STORE_FILE}.`)
-		process.exit(1)
+		return { error: `No version found in ${VERSION_STORE_FILE}.`, storePath: versionFilePath }
 	}
 
 	const version = storeJson.version
 
 	const pkgRaw = fs.readFileSync(pkgPath, 'utf-8')
-	const pkgJson = JSON.parse(pkgRaw)
+	const pkgJson: PackageJson = JSON.parse(pkgRaw)
+
+	// Reconstruct object to place "version" after "name" if "name" exists, or on top
+	const finalPkg: PackageJson = {}
+
+	if ('name' in pkgJson) {
+		finalPkg.name = pkgJson.name
+		finalPkg.version = version
+		for (const [key, value] of Object.entries(pkgJson)) {
+			if (key !== 'name' && key !== 'version') {
+				finalPkg[key] = value
+			}
+		}
+	} else {
+		finalPkg.version = version
+		for (const [key, value] of Object.entries(pkgJson)) {
+			if (key !== 'version') {
+				finalPkg[key] = value
+			}
+		}
+	}
 
 	if (dryRun) {
 		console.log(`(dry-run) Would restore version ${version} into package.json`)
 	} else {
-		pkgJson.version = version
-		fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2))
+		fs.writeFileSync(pkgPath, JSON.stringify(finalPkg, null, 2))
 		console.log(`✔ Version ${version} restored to package.json`)
+	}
+
+	return {
+		restored: version,
+		updatedPkg: finalPkg,
+		storePath: versionFilePath
 	}
 }

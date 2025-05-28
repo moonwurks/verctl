@@ -6,8 +6,6 @@ export async function writeJSON(filePath: string, data: unknown, dryRun = false)
 		? JSON.parse(fs.readFileSync(filePath, 'utf8'))
 		: {}
 
-	const updated = { ...original, ...data as Record<string, unknown> }
-
 	let indent = '  ' // default 2 spaces
 	try {
 		const ec = await parse(filePath)
@@ -16,7 +14,7 @@ export async function writeJSON(filePath: string, data: unknown, dryRun = false)
 		// fallback to default
 	}
 
-	const content = JSON.stringify(updated, null, indent)
+	const content = JSON.stringify(data, null, indent)
 
 	if (dryRun) {
 		console.log(`(dry-run) Would write to ${filePath}:`)

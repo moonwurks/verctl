@@ -58,12 +58,30 @@ async function main(): Promise<void> {
 	}
 
 	if (cli.cmd === 'extract') {
-		extractVersionToStore(pkgPath, cli.dryRun)
+		const result = extractVersionToStore(pkgPath, cli.dryRun)
+		if (result.error) {
+			console.error(`✖ ${result.error}`)
+			process.exit(1)
+		}
+
+		if (result.updatedPkg) {
+			await writeJSON(pkgPath, result.updatedPkg, cli.dryRun)
+		}
+
 		process.exit(0)
 	}
 
 	if (cli.cmd === 'restore') {
-		restoreVersionFromStore(pkgPath, cli.dryRun)
+		const result = restoreVersionFromStore(pkgPath, cli.dryRun)
+		if (result.error) {
+			console.error(`✖ ${result.error}`)
+			process.exit(1)
+		}
+
+		if (result.updatedPkg) {
+			await writeJSON(pkgPath, result.updatedPkg, cli.dryRun)
+		}
+
 		process.exit(0)
 	}
 
@@ -99,8 +117,12 @@ async function main(): Promise<void> {
 
 	const oldVersion = pkg.version
 	if (!isValidSemver(oldVersion)) {
-		console.error(`✖ Invalid version in package.json: ${oldVersion}`)
-		process.exit(1)
+		if(!pkg.version) {
+			pkg.version = '0.0.0'
+		} else {
+			console.error(`✖ Invalid version in package.json: ${oldVersion}`)
+			process.exit(1)
+		}
 	}
 
 	let newVersion: string
