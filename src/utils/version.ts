@@ -1,6 +1,7 @@
 import fs from 'fs'
 import { readJSON } from './writer'
 import { getRootPackage, PackageJson, PackageLockJson } from './common'
+import path from 'path'
 
 export type VersionParts = [number, number, number]
 
@@ -94,24 +95,28 @@ export function extractVersionToStore(pkgPath: string, dryRun = false): void {
 	}
 
 	const version = pkgJson.version
+	const versionFilePath = path.join(path.dirname(pkgPath), VERSION_STORE_FILE)
+
 	if (dryRun) {
-		console.log(`(dry-run) Would extract version ${version} and write to ${VERSION_STORE_FILE}`)
+		console.log(`(dry-run) Would extract version ${version} and write to ${versionFilePath}`)
 		console.log('(dry-run) Would remove version from package.json')
 	} else {
-		fs.writeFileSync(VERSION_STORE_FILE, JSON.stringify({ version }, null, 2))
+		fs.writeFileSync(versionFilePath, JSON.stringify({ version }, null, 2))
 		delete pkgJson.version
 		fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2))
-		console.log(`✔ Version ${version} extracted and stored in ${VERSION_STORE_FILE}`)
+		console.log(`✔ Version ${version} extracted and stored in ${versionFilePath}`)
 	}
 }
 
 export function restoreVersionFromStore(pkgPath: string, dryRun = false): void {
-	if (!fs.existsSync(VERSION_STORE_FILE)) {
-		console.error(`✖ ${VERSION_STORE_FILE} not found.`)
+	const versionFilePath = path.join(path.dirname(pkgPath), VERSION_STORE_FILE)
+
+	if (!fs.existsSync(versionFilePath)) {
+		console.error(`✖ ${VERSION_STORE_FILE} not found at: ${versionFilePath}`)
 		process.exit(1)
 	}
 
-	const storeRaw = fs.readFileSync(VERSION_STORE_FILE, 'utf-8')
+	const storeRaw = fs.readFileSync(versionFilePath, 'utf-8')
 	const storeJson = JSON.parse(storeRaw)
 
 	if (!storeJson.version) {
@@ -123,6 +128,7 @@ export function restoreVersionFromStore(pkgPath: string, dryRun = false): void {
 
 	const pkgRaw = fs.readFileSync(pkgPath, 'utf-8')
 	const pkgJson = JSON.parse(pkgRaw)
+
 	if (dryRun) {
 		console.log(`(dry-run) Would restore version ${version} into package.json`)
 	} else {

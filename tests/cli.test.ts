@@ -246,17 +246,18 @@ describe('common functions', () => {
 		expect(pkgJson.version).toBeUndefined()
 	})
 
-	it('restores version from .verctl-version.json to package.json', async () => {
+	it('extracts version to .verctl-version.json and removes from custom location of package.json', async () => {
 		const versionStore = path.resolve(customDist, '.verctl-version.json')
-		const pkgPath = path.resolve(customDist, 'package.json')
+		const pkgPath = path.resolve(customDist, 'mock', 'custom-package.json')
+
+		const { stdout } = await execa('node', [cli, 'extract', '-f', pkgPath], { cwd: customDist, reject: false })
+		expect(stdout).toContain('✔ Version')
 
 		const stored = JSON.parse(await fsp.readFile(versionStore, 'utf8'))
-
-		const { stdout } = await execa('node', [cli, 'restore'], { cwd: customDist, reject: false })
-		expect(stdout).toContain(`✔ Version ${stored.version} restored to package.json`)
+		expect(stored.version).toMatch(/^\d+\.\d+\.\d+(-.+)?$/)
 
 		const pkgJson = JSON.parse(await fsp.readFile(pkgPath, 'utf8'))
-		expect(pkgJson.version).toBe(stored.version)
+		expect(pkgJson.version).toBeUndefined()
 	})
 
 	it('dry-run: restore should not change package.json', async () => {
@@ -271,6 +272,33 @@ describe('common functions', () => {
 
 		const currentPkg = await fsp.readFile(pkgPath, 'utf8')
 		expect(currentPkg).toBe(originalPkg)
+	})
+
+	it('restores version from .verctl-version.json to package.json', async () => {
+		const versionStore = path.resolve(customDist, '.verctl-version.json')
+		const pkgPath = path.resolve(customDist, 'package.json')
+
+		const stored = JSON.parse(await fsp.readFile(versionStore, 'utf8'))
+
+		const { stdout } = await execa('node', [cli, 'restore'], { cwd: customDist, reject: false })
+		expect(stdout).toContain(`✔ Version ${stored.version} restored to package.json`)
+
+		const pkgJson = JSON.parse(await fsp.readFile(pkgPath, 'utf8'))
+		expect(pkgJson.version).toBe(stored.version)
+	})
+
+	it('restores version from .verctl-version.json to custom package.json', async () => {
+		const versionStore = path.resolve(customDist, 'mock', '.verctl-version.json')
+		const pkgPath = path.resolve(customDist, 'mock', 'custom-package.json')
+
+		const stored = JSON.parse(await fsp.readFile(versionStore, 'utf8'))
+
+		const { stdout, stderr } = await execa('node', [cli, 'restore', '-f', pkgPath], { cwd: customDist, reject: false })
+		console.log(stdout, stderr)
+		expect(stdout).toContain(`✔ Version ${stored.version} restored to package.json`)
+
+		const pkgJson = JSON.parse(await fsp.readFile(pkgPath, 'utf8'))
+		expect(pkgJson.version).toBe(stored.version)
 	})
 })
 
